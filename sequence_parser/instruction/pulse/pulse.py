@@ -32,7 +32,7 @@ class Pulse(Instruction):
         self.detuning = port.detuning
         port._time_step(self.duration)
 
-    def _write(self, port, out: np.ndarray, delay: float = 0, factor: float = 1):
+    def _write(self, port, out: np.ndarray, delay: float = 0, factor: float = 1, phas_offset: float = 0):
         time = port.time - delay
         relative_time = time - (self.position + self.duration / 2)
         flag_above = relative_time + self.duration/2 >= -0.5*port.DAC_STEP
@@ -40,7 +40,7 @@ class Pulse(Instruction):
         support = flag_above & flag_below
         envelope = self.pulse_shape.model_func(relative_time[support])
         if_freq = port.if_freq + self.detuning
-        phase_factor = np.exp(-1j * (2*np.pi * if_freq * time[support] + self.phase))
+        phase_factor = np.exp(-1j * (2*np.pi * if_freq * time[support] + self.phase + phas_offset))
         waveform = factor * envelope * phase_factor
         out[support] += waveform
 
@@ -110,7 +110,7 @@ class RaisedCos(Pulse):
             "amplitude" : amplitude,
             "duration" : duration
         }
-        
+
     def _get_duration(self):
         self.duration = self.tmp_params["duration"]
 
@@ -130,10 +130,10 @@ class HyperbolicSecant(Pulse):
             "duration" : duration,
             "zero_end" : zero_end
         }
-        
+
     def _get_duration(self):
         self.duration = self.tmp_params["duration"]
-        
+
 class HalfDRAG(Pulse):
     def __init__(
         self,
@@ -188,9 +188,9 @@ class CRAB(Pulse):
         self.insts = {0:envelope}
         self.coefficients = coefficients
         self.polynominals = polynominals
-        
+
     def _get_duration(self):
-        self.duration = self.insts[0].duration        
+        self.duration = self.insts[0].duration
 
 class Product(Pulse):
     def __init__(
@@ -202,10 +202,10 @@ class Product(Pulse):
         self.pulse_shape = ProductShape()
         self.params = {}
         self.insts = {0:pulse_a, 1:pulse_p}
-        
+
     def _get_duration(self):
 <<<<<<< HEAD
-        self.duration = max(self.insts[0].duration, self.insts[1].duration) 
+        self.duration = max(self.insts[0].duration, self.insts[1].duration)
 =======
         self.duration = max(self.insts[0].duration, self.insts[1].duration)
 
@@ -223,7 +223,7 @@ class PolynomialRaisedCos(Pulse):
             "coefficients" : coefficients,
             "duration" : duration
         }
-        
+
     def _get_duration(self):
         self.duration = self.tmp_params["duration"]
 >>>>>>> 1089aee357d400c2c9568139c2badeb4fcd77560
