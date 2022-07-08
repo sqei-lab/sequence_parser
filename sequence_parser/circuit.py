@@ -28,7 +28,7 @@ class CircuitBase(Sequence):
         self.backend = backend
         self._apply_port_table(backend.port_table)
         self._apply_gate_table(backend.gate_table)
-            
+
     def _apply_port_table(self, port_table):
         self.q = {}
         self.r = {}
@@ -44,10 +44,10 @@ class CircuitBase(Sequence):
             self.c[idx] = self._verify_port(port)
         for idx, port in self.port_table.impas.items():
             self.i[idx] = self._verify_port(port)
-            
+
     def _apply_gate_table(self, gate_table):
         self.gate_table = gate_table
-        
+
     def qadd(self, instruction, target):
         """Add Instruction to QubitPort.q
         Args:
@@ -62,7 +62,7 @@ class CircuitBase(Sequence):
         instruction = self._verify_instruction(instruction)
         port = self._verify_port(port)
         self.instruction_list.append((instruction, port))
-        
+
     def radd(self, instruction, target):
         """Add Instruction to QubitPort.r
         Args:
@@ -110,7 +110,7 @@ class CircuitBase(Sequence):
         acquire_port_list = [self.port_table.nodes[qubit].a for qubit in qubits]
         impa_port_list = [self.port_table.impas[mux] for mux in muxes]
         self.trigger(control_port_list + readout_port_list + acquire_port_list + impa_port_list, align)
-        
+
     def gate(self, key, index):
         """Execute a gate
         Args:
@@ -119,7 +119,7 @@ class CircuitBase(Sequence):
         """
         gate = self.gate_table.get_gate(key, index)
         self.call(gate)
-        
+
     def qwait(self, time, target):
         """Execute a wait gate with given angle
         Args:
@@ -135,8 +135,9 @@ class CircuitBase(Sequence):
             target (int): index of the target qubit port
         """
         self.add(VirtualZ(phi), self.port_table.nodes[target].q)
-        for cross in self.port_table.syncs[target]:
-            self.add(VirtualZ(phi), cross)
+        if len(self.port_table.syncs) != 0:
+            for cross in self.port_table.syncs[target]:
+                self.add(VirtualZ(phi), cross)
 
     def rx90(self, target):
         """Execute a rx90 gate
@@ -144,7 +145,7 @@ class CircuitBase(Sequence):
             target (int): index of the target qubit port
         """
         self.gate("rx90", target)
-        
+
     def rx180(self, target):
         """Execute a rx180 gate
         Args:
@@ -159,7 +160,7 @@ class CircuitBase(Sequence):
             target (int): index of the target qubit port
         """
         self.gate("rzx45", (control, target))
-        
+
     def rzx90(self, control, target):
         """Execute a rzx90 gate
         Args:
@@ -188,14 +189,14 @@ class CircuitBase(Sequence):
             time_range (tupple): time_range for plot written as (start, end)
             baseband (bool): whether to plot at baseband or at port.if_freq
         """
-        
+
         if reflect_skew is False:
             skew_list = []
             all_ports = list(self.q.values()) + list(self.r.values()) + list(self.a.values()) + list(self.i.values()) + list(self.c.values())
             for port in all_ports:
                 skew_list.append(port.skew)
                 port.skew = 0
-        
+
         if not self.flag["compiled"]:
             self.compile()
 
@@ -212,7 +213,7 @@ class CircuitBase(Sequence):
                     rport.measurement_windows = aport.measurement_windows
                     plot_port_list.append(rport)
                 plot_port_list.append(self._verify_port(impa))
-        
+
         if time_range is None:
             plot_time_range = (0, self.max_waveform_lenght)
         else:
@@ -247,25 +248,25 @@ class CircuitBase(Sequence):
         plt.tick_params(labelbottom=True)
         plt.xlabel("Time (ns)")
         plt.show()
-        
+
         if reflect_skew is False:
             for port, skew in zip(all_ports, skew_list):
                 port.skew = skew
-        
+
     def get_waveform_information(self):
         """get waveform information for I/O with measurement_tools
         """
-        
+
         if not self.flag["compiled"]:
             self.compile()
-        
+
         waveform_information = {}
         for idx, port in self.port_table.nodes.items():
-            
+
             qport = self._verify_port(port.q)
             rport = self._verify_port(port.r)
             aport = self._verify_port(port.a)
-            
+
             qdir = {
                 "daq_length" : qport.waveform.size*qport.DAC_STEP,
                 "measurement_windows" : qport.measurement_windows,
@@ -278,12 +279,12 @@ class CircuitBase(Sequence):
                 "waveform" : rport.waveform.real,
                 "waveform_updated" : False,
             }
-            
+
             waveform_information[f"Q{idx}"] = {
                 "qubit"   : qdir,
                 "readout" : rdir,
             }
-            
+
         for edge, port in self.port_table.edges.items():
             cport = self._verify_port(port)
 
@@ -295,23 +296,23 @@ class CircuitBase(Sequence):
             }
 
             waveform_information[f"Q{edge[1]}"]["cr"] = cdir
-            
+
         for idx, port in self.port_table.impas.items():
             iport = self._verify_port(port)
-            
+
             idir = {
                 "daq_length" : iport.waveform.size*iport.DAC_STEP,
                 "measurement_windows" : iport.measurement_windows,
                 "waveform" : iport.waveform.real,
                 "waveform_updated" : False,
             }
-            
+
             waveform_information[f"I{idx}"] = {
                 "jpa"    : idir,
             }
-            
+
         self.reset_compile()
-            
+
         return waveform_information
 
 class Circuit(CircuitBase):
@@ -335,7 +336,7 @@ class Circuit(CircuitBase):
         self.rz(-0.5*np.pi, target)
         self.rx90(target)
         self.rz(+0.5*np.pi, target)
-        
+
     def iry90(self, target):
         """Execute a inversed ry90 gate
         Args:
@@ -344,14 +345,14 @@ class Circuit(CircuitBase):
         self.rz(+0.5*np.pi, target)
         self.rx90(target)
         self.rz(-0.5*np.pi, target)
-        
+
     def I(self, target):
         """Execute a I gate
         Args:
             target (int): index of the target qubit port
         """
         pass
-    
+
     def X(self, target):
         """Execute a X gate
         Args:
@@ -368,14 +369,14 @@ class Circuit(CircuitBase):
         self.rz(-0.5*np.pi, target)
         self.X(target)
         self.rz(+0.5*np.pi, target)
-        
+
     def Z(self, target):
         """Execute a Z gate
         Args:
             target (int): index of the target qubit port
         """
         self.rz(np.pi, target)
-        
+
     def iX(self, target):
         """Execute a Inversed X gate
         Args:
@@ -384,7 +385,7 @@ class Circuit(CircuitBase):
         self.Z(target)
         self.X(target)
         self.Z(target)
-        
+
     def iY(self, target):
         """Execute a Inversed Y gate
         Args:
@@ -393,14 +394,14 @@ class Circuit(CircuitBase):
         self.Z(target)
         self.Y(target)
         self.Z(target)
-        
+
     def Pauli(self, label, target):
         """Execute a Pauli gate
         Args:
             label (str) : I or X or Y or Z
             target (int): index of the target qubit port
         """
-        
+
         if label == "I":
             self.I(target)
         elif label == "X":
@@ -411,7 +412,7 @@ class Circuit(CircuitBase):
             self.Z(target)
         else:
             raise
-    
+
     def irzx45(self, control, target):
         """Execute a inversed irzx45 gate
         Args:
@@ -442,7 +443,7 @@ class Circuit(CircuitBase):
         self.rz(-0.5*np.pi, control)
         self.rzx90(control, target)
         self.irx90(target)
-        
+
     def icnot(self, control, target):
         """Execute a inversed cnot gate
         Args:
@@ -451,7 +452,7 @@ class Circuit(CircuitBase):
         """
         H = 0.5**(0.5)*np.array([[1,1],[1,-1]])
         irx90 = 0.5**(0.5)*np.array([[1,1j],[1j,1]])
-        
+
         self.rz(-0.5*np.pi, target)
         self.su2(H, control)
         self.su2(H, target)
@@ -551,12 +552,12 @@ class Circuit(CircuitBase):
         """
         target = self.port_table.nodes.keys()
         self.measurements(target)
-        
+
 class MitigatedCircuit(Circuit):
     def __init__(self, backend, repeat):
         super().__init__(backend)
         self.repeat = repeat
-        
+
     def rx90(self, target):
         """Execute a rx90 gate
         Args:
@@ -581,12 +582,12 @@ class MitigatedCircuit(Circuit):
             super().rzx45(control, target)
             self.rz(np.pi, target)
         super().rzx45(control, target)
-        
+
 class MitigatedCircuit2(Circuit):
     def __init__(self, backend, index):
         super().__init__(backend)
         self.index = index
-        
+
     def rx90(self, target):
         """Execute a rx90 gate
         Args:
@@ -596,7 +597,7 @@ class MitigatedCircuit2(Circuit):
         if rx90.flag["compiled"] is False:
             rx90.compile()
         duration = rx90.max_waveform_lenght
-        
+
         self.qwait(0.5*self.index*duration, target)
         super().rx90(target)
         self.qwait(0.5*self.index*duration, target)
@@ -611,7 +612,7 @@ class MitigatedCircuit2(Circuit):
         if rzx45.flag["compiled"] is False:
             rzx45.compile()
         duration = rzx45.max_waveform_lenght
-        
+
         self.qtrigger([control, target])
         self.qwait(0.5*self.index*duration, control)
         self.qwait(0.5*self.index*duration, target)
