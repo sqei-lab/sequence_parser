@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from .sequence import Sequence
 from .instruction.instruction_parser import compose
-from .instruction.command import VirtualZ, Delay
+from .instruction.command import VirtualZ, Delay, ResetPhase
 from .instruction.acquire import Acquire
 from .instruction.align import _AlignManager
-from .util.decompose import matrix_to_su2, matrix_to_su4
+from .util.decompose import matrix_to_su2, matrix_to_su4, matrix_to_su4_cz_base
 from sequence_parser.instruction import acquire
 
 plt.rcParams['ytick.minor.visible'] = False
@@ -128,6 +128,14 @@ class CircuitBase(Sequence):
         """
         self.add(Delay(time), self.port_table.nodes[target].q)
 
+    def qreset_phase(self, phase=0, target=0):
+        """Execute a wait gate with given angle
+        Args:
+            time (float) : wait time [ns]
+            target (int): index of the target qubit port
+        """
+        self.add(ResetPhase(phase), self.port_table.nodes[target].q)
+
     def rz(self, phi, target):
         """Execute a rz gate with given angle
         Args:
@@ -215,7 +223,7 @@ class CircuitBase(Sequence):
                 plot_port_list.append(self._verify_port(impa))
 
         if time_range is None:
-            plot_time_range = (0, self.max_waveform_lenght)
+            plot_time_range = (0, self.max_waveform_length)
         else:
             plot_time_range = time_range
 
@@ -460,6 +468,17 @@ class Circuit(CircuitBase):
         self.su2(irx90@H, control)
         self.su2(H, target)
 
+    def cz(self, control, target):
+        """Execute a cz gate
+        Args:
+            control (int): index of the control qubit port
+            target (int): index of the target qubit port
+        """
+        pass
+        # self.rz(-0.5*np.pi, control)
+        # self.rzx90(control, target)
+        # self.irx90(target)
+
     def prep_init(self, pauli, index, target):
         """Prepare the eigenstate of Pauli operator on the indicated qubit
         Args:
@@ -530,6 +549,26 @@ class Circuit(CircuitBase):
         self.su2(gates[3][0], control)
         self.su2(gates[3][1], target)
 
+    def su4_cz_base(self, matrix, control, target):
+        """Execute the arbitrary two-qubit gate with Cartan's KAK decomposition
+        Args:
+            matrix (np.ndarray): matrix expression of the two-qubit gate
+            control (int): index of the control qubit port
+            target (int): index of the target qubit port
+        """
+        gates = matrix_to_su4_cz_base(matrix)
+        self.su2(gates[0][0], control)
+        self.su2(gates[0][1], target)
+        self.cz()
+        self.su2(gates[1][0], control)
+        self.su2(gates[1][1], target)
+        self.cz()
+        self.su2(gates[2][0], control)
+        self.su2(gates[2][1], target)
+        self.cz()
+        self.su2(gates[3][0], control)
+        self.su2(gates[3][1], target)
+
     def measurements(self, target):
         """Execute measurements for many qubits
         Args:
@@ -596,7 +635,7 @@ class MitigatedCircuit2(Circuit):
         rx90 = self.gate_table.get_gate("rx90", target)
         if rx90.flag["compiled"] is False:
             rx90.compile()
-        duration = rx90.max_waveform_lenght
+        duration = rx90.max_waveform_length
 
         self.qwait(0.5*self.index*duration, target)
         super().rx90(target)
@@ -611,7 +650,7 @@ class MitigatedCircuit2(Circuit):
         rzx45 = self.gate_table.get_gate("rzx45", (control, target))
         if rzx45.flag["compiled"] is False:
             rzx45.compile()
-        duration = rzx45.max_waveform_lenght
+        duration = rzx45.max_waveform_length
 
         self.qtrigger([control, target])
         self.qwait(0.5*self.index*duration, control)
