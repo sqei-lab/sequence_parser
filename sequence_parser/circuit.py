@@ -213,6 +213,7 @@ class CircuitBase(Sequence):
         else:
             plot_port_list = []
             plot_port_list += [self._verify_port(node.q) for node in self.port_table.nodes.values()]
+            plot_port_list += [self._verify_port(node.r) for node in self.port_table.nodes.values()]
             plot_port_list += [self._verify_port(node)   for node in self.port_table.edges.values()]
             for (impa, nodes) in self.port_table.muxes.values():
                 for node in nodes:
@@ -221,7 +222,6 @@ class CircuitBase(Sequence):
                     rport.measurement_windows = aport.measurement_windows
                     plot_port_list.append(rport)
                 plot_port_list.append(self._verify_port(impa))
-
         if time_range is None:
             plot_time_range = (0, self.max_waveform_length)
         else:

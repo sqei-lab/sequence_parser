@@ -17,6 +17,9 @@ class Variable:
     def _set_value(self, idx):
         self.value = self.value_array[idx]
 
+    def _set_value_in_situ(self, value):
+        self.value = value
+
 class Variables:
     def __init__(self):
         self.variable_list = []
@@ -71,3 +74,10 @@ class Variables:
                         tmp_var[var.name] = var.value_array[idx]
                         update_command[var.name] = idx
             self.update_command_list.append(update_command)
+
+    def initialize_variables(self):
+        for vl in self.variable_list:
+            for i in range(len(vl)):
+                v = vl[i]
+                value = v.value_array[0]
+                v._set_value_in_situ(value)

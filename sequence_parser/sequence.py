@@ -57,6 +57,7 @@ class Sequence:
         self.instruction_list = []
         self.variable_dict = {}
         self.flag = {"compiled" : False}
+        self.metadata = None
 
     def _verify_port(self, port):
         """Verify new port
@@ -146,6 +147,18 @@ class Sequence:
         for variable_name, index in update_command.items():
             for variable in self.variable_dict[variable_name]:
                 variable._set_value(index)
+
+        self.flag["compiled"] = False
+    
+    def update_variables_in_situ(self, update_dict):
+        """update values in variables
+        Args:
+            update_dict (dict): {"variable_name" (str) : varaible_value (float)}
+        """
+        # print(self.variable_dict.keys())
+        for variable_name, value in update_dict.items():
+            for variable in self.variable_dict[variable_name]:
+                variable._set_value_in_situ(value)
 
         self.flag["compiled"] = False
 
