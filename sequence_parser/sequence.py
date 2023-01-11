@@ -145,8 +145,10 @@ class Sequence:
             update_command (dict): {"variable_name" (str) : varaible_index (int)}
         """
         for variable_name, index in update_command.items():
-            for variable in self.variable_dict[variable_name]:
-                variable._set_value(index)
+            # print(self.variable_dict.keys())
+            if variable_name in self.variable_dict.keys():
+                for variable in self.variable_dict[variable_name]:
+                    variable._set_value(index)
 
         self.flag["compiled"] = False
     
@@ -157,8 +159,9 @@ class Sequence:
         """
         # print(self.variable_dict.keys())
         for variable_name, value in update_dict.items():
-            for variable in self.variable_dict[variable_name]:
-                variable._set_value_in_situ(value)
+            if variable_name in self.variable_dict.keys():
+                for variable in self.variable_dict[variable_name]:
+                    variable._set_value_in_situ(value)
 
         self.flag["compiled"] = False
 
