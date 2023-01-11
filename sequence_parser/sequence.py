@@ -109,14 +109,14 @@ class Sequence:
         instruction = self._verify_instruction(instruction)
         self.instruction_list.append((instruction, port))
 
-    def trigger(self, port_list, align="left"):
+    def trigger(self, port_list, align="left", marker=None):
         """Add Trigger into the instruction_list
         Args:
             port_list (list): list of the target ports to be syncronized
             align (str): indicate align mode in the next trigger-edge ("left", "middle", and "right")
         """
         port_list = [self._verify_port(port) for port in port_list]
-        self.instruction_list.append((Trigger(align=align), port_list))
+        self.instruction_list.append((Trigger(align=align, marker=marker), port_list))
 
     def align(self, port, mode):
         """Change align mode
@@ -185,6 +185,8 @@ class Sequence:
 
         ## initialize before compile
         self.trigger_index = 0
+        self.trigger_marker_index = {}
+        self.trigger_marked_position = {}
         self.trigger_position_list = None
         self.max_waveform_length = None
         self.compiled_instruction_list = []
@@ -204,6 +206,8 @@ class Sequence:
         for instruction, port in self.compiled_instruction_list:
             if isinstance(instruction, Trigger):
                 instruction.trigger_index = self.trigger_index
+                if type(instruction.marker) is str:
+                    self.trigger_marker_index[instruction.marker] = self.trigger_index
                 self.trigger_index += 1
                 for tmp_port in port:
                     tmp_port._add(instruction)
@@ -247,6 +251,10 @@ class Sequence:
             port._write_waveform(self.max_skew + self.max_waveform_length)
 
         self.flag["compiled"] = True
+
+        for key in self.trigger_marker_index.keys():
+            i = self.trigger_marker_index[key]
+            self.trigger_marked_position[key] = self.trigger_position_list[i]
 
     def draw(self, port_name_list=None, time_range=None, baseband=True):
         """draw waveform saved in the Ports
