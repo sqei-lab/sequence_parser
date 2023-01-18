@@ -135,7 +135,9 @@ class Sequence:
 
         for instruction, port in sequence.instruction_list:
             if isinstance(instruction, Trigger):
-                self.trigger(port, align=instruction.align)
+                self.trigger(port,
+                             align=instruction.align,
+                             marker=instruction.marker)
             else:
                 self.add(instruction, port)
 

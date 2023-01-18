@@ -142,10 +142,11 @@ class CircuitBase(Sequence):
             phi (float) : rotation angle [0, 2pi]
             target (int): index of the target qubit port
         """
-        self.add(VirtualZ(phi), self.port_table.nodes[target].q)
+        phas = phi/2
+        self.add(VirtualZ(phas), self.port_table.nodes[target].q)
         if len(self.port_table.syncs) != 0:
             for cross in self.port_table.syncs[target]:
-                self.add(VirtualZ(phi), cross)
+                self.add(VirtualZ(phas), cross)
 
     def rx90(self, target):
         """Execute a rx90 gate
@@ -191,7 +192,7 @@ class CircuitBase(Sequence):
         """
         self.gate("pump", target)
 
-    def draw(self, time_range=None, baseband=True, reflect_skew=False):
+    def draw(self, port_name_list=None, time_range=None, baseband=True, reflect_skew=False):
         """draw waveform saved in the Ports
         Args:
             time_range (tupple): time_range for plot written as (start, end)
@@ -208,8 +209,13 @@ class CircuitBase(Sequence):
         if not self.flag["compiled"]:
             self.compile()
 
-        if self.port_table is None:
+        if self.port_table is None and port_name_list is None:
             plot_port_list = self.port_list
+        elif port_name_list is not None:
+            plot_port_list = []
+            for port in self.port_list:
+                if port.name in port_name_list:
+                    plot_port_list.append(port)
         else:
             plot_port_list = []
             plot_port_list += [self._verify_port(node.q) for node in self.port_table.nodes.values()]
