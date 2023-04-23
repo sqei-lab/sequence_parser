@@ -9,7 +9,7 @@ from .instruction.functional import Container
 class Port:
     """Port management class for timedomain measurement"""
 
-    def __init__(self, name, if_freq=0.25, DAC_STEP=1):
+    def __init__(self, name, if_freq=0.025, DAC_STEP=1):
         """initial setting of the Port
         Args:
             name (str): port name

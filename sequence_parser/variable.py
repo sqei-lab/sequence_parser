@@ -75,6 +75,23 @@ class Variables:
                         update_command[var.name] = idx
             self.update_command_list.append(update_command)
 
+    def compile_parfor(self):
+        """Compile the variables
+        
+        """
+        sweep_axis = [tuple(range(i)) for i in self.variable_size_list]
+        sweep_index = list(itertools.product(*sweep_axis))
+
+        self.update_command_list = []
+        tmp_var = dict(zip(self.variable_name_list, [None]*len(self.variable_name_list)))
+        for tmp_index in sweep_index:
+            update_command = {}
+            for variable, idx in zip(self.variable_list, tmp_index):
+                for var in variable:
+                    tmp_var[var.name] = var.value_array[idx]
+                    update_command[var.name] = idx
+            self.update_command_list.append(update_command)
+
     def initialize_variables(self):
         for vl in self.variable_list:
             for i in range(len(vl)):

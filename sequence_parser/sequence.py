@@ -58,6 +58,7 @@ class Sequence:
         self.variable_dict = {}
         self.flag = {"compiled" : False}
         self.metadata = None
+        self.port_copy_flag = True
 
     def _verify_port(self, port):
         """Verify new port
@@ -70,7 +71,10 @@ class Sequence:
         for tmp in self.port_list:
             if port.name == tmp.name:
                 return tmp
-        new_port = copy.deepcopy(port)
+        if self.port_copy_flag:
+            new_port = copy.deepcopy(port)
+        else:
+            new_port = port
         new_port._reset()
         self.port_list.append(new_port)
         return new_port
