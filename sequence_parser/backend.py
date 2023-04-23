@@ -8,22 +8,22 @@ class QubitPort:
         self.port_type = port_type
         if ports is None:
             if self.port_type == 'SHD':
-                self.control = Port(f"q{node}.q")
-                self.readout = Port(f"q{node}.r")
-                self.acquire = Port(f"q{node}.a")
-                self.free_port = Port(f"q{node}.fp")
+                self.control = Port(f"q{node}.q", node=node)
+                self.readout = Port(f"q{node}.r", node=node)
+                self.acquire = Port(f"q{node}.a", node=node)
+                self.free_port = Port(f"q{node}.fp", node=node)
             elif self.port_type == 'IQ':
-                self.control = IQPort(f"q{node}.q")
-                self.readout = IQPort(f"q{node}.r")
-                self.acquire = IQPort(f"q{node}.a")
-                self.free_port = IQPort(f"q{node}.fp")
+                self.control = IQPort(f"q{node}.q", node=node)
+                self.readout = IQPort(f"q{node}.r", node=node)
+                self.acquire = IQPort(f"q{node}.a", node=node)
+                self.free_port = IQPort(f"q{node}.fp", node=node)
             elif self.port_type == 'CAS_IQ':
-                self.control = IQPort(f"q{node}.q")
-                self.readout = IQPort(f"q{node}.r")
-                self.acquire = IQPort(f"q{node}.a")
-                self.free_port = IQPort(f"q{node}.fp")
-                self.blue = IQPort(f"q{node}.blue")
-                self.red = IQPort(f"q{node}.red")
+                self.control = IQPort(f"q{node}.q", node=node)
+                self.readout = IQPort(f"q{node}.r", node=node)
+                self.acquire = IQPort(f"q{node}.a", node=node)
+                self.free_port = IQPort(f"q{node}.fp", node=node)
+                self.blue = IQPort(f"q{node}.blue", node=node)
+                self.red = IQPort(f"q{node}.red", node=node)
         elif ports is not None:
                 self.control = ports['control']
                 self.readout = ports['readout']

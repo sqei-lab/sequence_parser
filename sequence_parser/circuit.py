@@ -142,11 +142,15 @@ class CircuitBase(Sequence):
             phi (float) : rotation angle [0, 2pi]
             target (int): index of the target qubit port
         """
-        phas = phi/2
+        # phas = phi/2
+        phas = phi
         self.add(VirtualZ(phas), self.port_table.nodes[target].q)
         if len(self.port_table.syncs) != 0:
             for cross in self.port_table.syncs[target]:
                 self.add(VirtualZ(phas), cross)
+        # self.add(VirtualZ(phi), self.port_table.nodes[target].q)
+        # for cross in self.port_table.syncs[target]:
+        #     self.add(VirtualZ(phi), cross)
 
     def rx90(self, target):
         """Execute a rx90 gate
