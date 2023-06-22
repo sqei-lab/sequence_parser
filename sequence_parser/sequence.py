@@ -149,7 +149,7 @@ class Sequence:
                 variable._set_value(index)
 
         self.flag["compiled"] = False
-    
+
     def update_variables_in_situ(self, update_dict):
         """update values in variables
         Args:
@@ -245,7 +245,7 @@ class Sequence:
 
         self.flag["compiled"] = True
 
-    def draw(self, port_name_list=None, time_range=None, baseband=True):
+    def draw(self, port_name_list=None, time_range=None, baseband=True, unity=False):
         """draw waveform saved in the Ports
         Args:
             port_name_list (list): List of the port_name to plot waveform
@@ -279,10 +279,15 @@ class Sequence:
                 plot_waveform = np.exp(1j*(2*np.pi*port.if_freq*port.time))*port.waveform
             else:
                 plot_waveform = port.waveform
-            plt.step(port.time, plot_waveform.real)
-            plt.step(port.time, plot_waveform.imag)
-            plt.fill_between(port.time, plot_waveform.real, step="pre", alpha=0.4)
-            plt.fill_between(port.time, plot_waveform.imag, step="pre", alpha=0.4)
+            y1 = plot_waveform.real
+            y2 = plot_waveform.imag
+            if unity:
+                y1 = np.abs(y1)/np.max(np.abs(y1))
+                y2 = np.abs(y2)/np.max(np.abs(y2))
+            plt.step(port.time, y1)
+            plt.step(port.time, y2)
+            plt.fill_between(port.time, y1, step="pre", alpha=0.4)
+            plt.fill_between(port.time, y2, step="pre", alpha=0.4)
             for trigger_index, _ in port.trigger_node_list:
                 position = self.trigger_position_list[trigger_index]
                 plt.axvline(position, color="red", linestyle="--")
