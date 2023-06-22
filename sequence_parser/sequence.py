@@ -299,8 +299,9 @@ class Sequence:
             y1 = plot_waveform.real
             y2 = plot_waveform.imag
             if unity:
-                y1 = np.abs(y1)/np.max(np.abs(y1))
-                y2 = np.abs(y2)/np.max(np.abs(y2))
+                m = max(np.max(np.abs(y1)), np.max(np.abs(y2)))
+                y1 = np.abs(y1)/m
+                y2 = np.abs(y2)/m
             plt.step(port.time, y1)
             plt.step(port.time, y2)
             plt.fill_between(port.time, y1, step="pre", alpha=0.4)
