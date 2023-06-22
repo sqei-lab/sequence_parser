@@ -98,6 +98,26 @@ class Gaussian(Pulse):
     def _get_duration(self):
         self.duration = self.tmp_params["duration"]
 
+class Gaussian2(Pulse):
+    def __init__(
+        self,
+        amplitude = 1,
+        fwhm = 30,
+        duration = 100,
+        zero_end = False,
+    ):
+        super().__init__()
+        self.pulse_shape = GaussianShape2()
+        self.params = {
+            "amplitude" : amplitude,
+            "fwhm" : fwhm,
+            "duration" : duration,
+            "zero_end" : zero_end
+        }
+
+    def _get_duration(self):
+        self.duration = self.tmp_params["duration"]
+
 class RaisedCos(Pulse):
     def __init__(
         self,

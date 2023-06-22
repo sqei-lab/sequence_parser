@@ -58,6 +58,23 @@ class GaussianShape(PulseShape):
             waveform = self.amplitude*(waveform - edge)/(self.amplitude - edge)
         return waveform
 
+class GaussianShape2(PulseShape):
+    def __init__(self):
+        super().__init__()
+
+    def set_params(self, pulse):
+        self.amplitude = pulse.tmp_params["amplitude"]
+        self.fwhm = pulse.tmp_params["fwhm"]
+        self.zero_end = pulse.tmp_params["zero_end"]
+        self.duration = pulse.duration
+
+    def model_func(self, time):
+        waveform = self.amplitude*np.exp(-4*np.log(2)*(time/self.fwhm)**2)
+        if self.zero_end:
+            edge = self.amplitude*np.exp(-4*np.log(2)*(0.5*self.duration/self.fwhm)**2)
+            waveform = self.amplitude*(waveform - edge)/(self.amplitude - edge)
+        return waveform
+
 class RaisedCosShape(PulseShape):
     def __init__(self):
         super().__init__()

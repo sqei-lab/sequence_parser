@@ -9,18 +9,21 @@ from .instruction.functional import Container
 class Port:
     """Port management class for timedomain measurement"""
 
-    def __init__(self, name, if_freq=0.25):
+    def __init__(self, name, if_freq=0.025, DAC_STEP=1, node=None):
         """initial setting of the Port
         Args:
             name (str): port name
             if_freq (float): IF frequency in GHz
+            DAC_STEP (float): Sampling resolution in ns
+            node (int, str, ...): Index/name of the node to which this port belongs
         """
         self.name = name
         self.if_freq = if_freq # GHz
-        self.DAC_STEP = 1.0 # ns
+        self.DAC_STEP = DAC_STEP # ns
         self.skew = 0.0 # ns
         self.skew_delay = 0.0 # ns
         self._reset()
+        self.node_index = node
 
     def __repr__(self):
         return str(self.name)

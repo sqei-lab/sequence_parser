@@ -58,6 +58,7 @@ class Sequence:
         self.variable_dict = {}
         self.flag = {"compiled" : False}
         self.metadata = None
+        self.port_copy_flag = True
 
     def _verify_port(self, port):
         """Verify new port
@@ -70,7 +71,10 @@ class Sequence:
         for tmp in self.port_list:
             if port.name == tmp.name:
                 return tmp
-        new_port = copy.deepcopy(port)
+        if self.port_copy_flag:
+            new_port = copy.deepcopy(port)
+        else:
+            new_port = port
         new_port._reset()
         self.port_list.append(new_port)
         return new_port
@@ -109,14 +113,14 @@ class Sequence:
         instruction = self._verify_instruction(instruction)
         self.instruction_list.append((instruction, port))
 
-    def trigger(self, port_list, align="left"):
+    def trigger(self, port_list, align="left", marker=None):
         """Add Trigger into the instruction_list
         Args:
             port_list (list): list of the target ports to be syncronized
             align (str): indicate align mode in the next trigger-edge ("left", "middle", and "right")
         """
         port_list = [self._verify_port(port) for port in port_list]
-        self.instruction_list.append((Trigger(align=align), port_list))
+        self.instruction_list.append((Trigger(align=align, marker=marker), port_list))
 
     def align(self, port, mode):
         """Change align mode
@@ -135,7 +139,9 @@ class Sequence:
 
         for instruction, port in sequence.instruction_list:
             if isinstance(instruction, Trigger):
-                self.trigger(port, align=instruction.align)
+                self.trigger(port,
+                             align=instruction.align,
+                             marker=instruction.marker)
             else:
                 self.add(instruction, port)
 
@@ -145,8 +151,10 @@ class Sequence:
             update_command (dict): {"variable_name" (str) : varaible_index (int)}
         """
         for variable_name, index in update_command.items():
-            for variable in self.variable_dict[variable_name]:
-                variable._set_value(index)
+            # print(self.variable_dict.keys())
+            if variable_name in self.variable_dict.keys():
+                for variable in self.variable_dict[variable_name]:
+                    variable._set_value(index)
 
         self.flag["compiled"] = False
 
@@ -157,8 +165,9 @@ class Sequence:
         """
         # print(self.variable_dict.keys())
         for variable_name, value in update_dict.items():
-            for variable in self.variable_dict[variable_name]:
-                variable._set_value_in_situ(value)
+            if variable_name in self.variable_dict.keys():
+                for variable in self.variable_dict[variable_name]:
+                    variable._set_value_in_situ(value)
 
         self.flag["compiled"] = False
 
@@ -182,6 +191,8 @@ class Sequence:
 
         ## initialize before compile
         self.trigger_index = 0
+        self.trigger_marker_index = {}
+        self.trigger_marked_position = {}
         self.trigger_position_list = None
         self.max_waveform_length = None
         self.compiled_instruction_list = []
@@ -201,6 +212,8 @@ class Sequence:
         for instruction, port in self.compiled_instruction_list:
             if isinstance(instruction, Trigger):
                 instruction.trigger_index = self.trigger_index
+                if type(instruction.marker) is str:
+                    self.trigger_marker_index[instruction.marker] = self.trigger_index
                 self.trigger_index += 1
                 for tmp_port in port:
                     tmp_port._add(instruction)
@@ -244,6 +257,10 @@ class Sequence:
             port._write_waveform(self.max_skew + self.max_waveform_length)
 
         self.flag["compiled"] = True
+
+        for key in self.trigger_marker_index.keys():
+            i = self.trigger_marker_index[key]
+            self.trigger_marked_position[key] = self.trigger_position_list[i]
 
     def draw(self, port_name_list=None, time_range=None, baseband=True, unity=False):
         """draw waveform saved in the Ports

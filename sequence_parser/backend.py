@@ -8,13 +8,22 @@ class QubitPort:
         self.port_type = port_type
         if ports is None:
             if self.port_type == 'SHD':
-                self.control = Port(f"q{node}.q")
-                self.readout = Port(f"q{node}.r")
-                self.acquire = Port(f"q{node}.a")
+                self.control = Port(f"q{node}.q", node=node)
+                self.readout = Port(f"q{node}.r", node=node)
+                self.acquire = Port(f"q{node}.a", node=node)
+                self.free_port = Port(f"q{node}.fp", node=node)
             elif self.port_type == 'IQ':
-                self.control = IQPort(f"q{node}.q")
-                self.readout = IQPort(f"q{node}.r")
-                self.acquire = IQPort(f"q{node}.a")
+                self.control = IQPort(f"q{node}.q", node=node)
+                self.readout = IQPort(f"q{node}.r", node=node)
+                self.acquire = IQPort(f"q{node}.a", node=node)
+                self.free_port = IQPort(f"q{node}.fp", node=node)
+            elif self.port_type == 'CAS_IQ':
+                self.control = IQPort(f"q{node}.q", node=node)
+                self.readout = IQPort(f"q{node}.r", node=node)
+                self.acquire = IQPort(f"q{node}.a", node=node)
+                self.free_port = IQPort(f"q{node}.fp", node=node)
+                self.blue = IQPort(f"q{node}.blue", node=node)
+                self.red = IQPort(f"q{node}.red", node=node)
         elif ports is not None:
                 self.control = ports['control']
                 self.readout = ports['readout']
@@ -30,6 +39,7 @@ class QubitPort:
         self.q = self.control
         self.r = self.readout
         self.a = self.acquire
+        self.fp = self.free_port
 
         self.lshift = {}
         self.rshift = {}
@@ -64,7 +74,7 @@ class PortTable:
 
     def _add_nodes(self, nodes):
         for node in nodes:
-            self.nodes[node] = QubitPort(node)
+            self.nodes[node] = QubitPort(node, port_type=self.port_type)
 
     def _add_nodes_predefined(self, nodes, port_type='IQ', ports_dict=None):
         for node in nodes:
@@ -76,6 +86,8 @@ class PortTable:
             if self.port_type == 'SHD':
                 edge_port = Port(name=f"c{edge[0]}_{edge[1]}")
             elif self.port_type == 'IQ':
+                edge_port = IQPort(name=f"c{edge[0]}_{edge[1]}")
+            elif self.port_type == 'CAS_IQ':
                 edge_port = IQPort(name=f"c{edge[0]}_{edge[1]}")
             self.edges[edge] = edge_port
             self.nodes[edge[0]]._add_rshift(self.nodes[edge[1]], edge_port)
