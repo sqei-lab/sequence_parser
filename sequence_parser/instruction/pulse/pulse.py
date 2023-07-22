@@ -35,6 +35,7 @@ class Pulse(Instruction):
     def _write(self, port, out: np.ndarray, delay: float = 0, factor: float = 1, phas_offset: float = 0):
         time = port.time - delay
         relative_time = time - (self.position + self.duration / 2)
+
         flag_above = relative_time + self.duration/2 >= -0.5*port.DAC_STEP
         flag_below = relative_time - self.duration/2 <  -0.5*port.DAC_STEP
         support = flag_above & flag_below
@@ -43,6 +44,8 @@ class Pulse(Instruction):
         phase_factor = np.exp(-1j * (2*np.pi * if_freq * time[support] + self.phase + phas_offset))
         waveform = factor * envelope * phase_factor
         out[support] += waveform
+        # print(port.name, time[support][0], self.position, (2*np.pi * if_freq * time[support] + self.phase + phas_offset)[0])
+        # print(len(envelope), self.duration, self.duration/port.DAC_STEP, '\n')
 
 class Square(Pulse):
     def __init__(

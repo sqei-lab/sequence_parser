@@ -56,3 +56,19 @@ class ResetPhase2(Command):
     def _execute(self, port):
         phase = self.tmp_params["phase"]
         port.phase = - phase - 2*np.pi*port.detuning*port.position
+
+class SetPhaseOrigin(Command):
+    """Set the phase origin.
+    The current time will be used as the phase origin for the following pulses.
+    """
+    def __init__(self, phas_offset=0):
+        super().__init__()
+        self.params = {"phas_offset" : phas_offset}
+
+    def _execute(self, port):
+        # print(port.position)
+        phas_offset = self.tmp_params["phas_offset"]
+        # time = port.time
+        # relative_time = time - port.position
+        if_freq = port.if_freq + port.detuning
+        port.phase = phas_offset - 2*np.pi*if_freq*port.position

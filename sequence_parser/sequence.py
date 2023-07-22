@@ -58,7 +58,7 @@ class Sequence:
         self.variable_dict = {}
         self.flag = {"compiled" : False}
         self.metadata = None
-        self.port_copy_flag = True
+        self.port_copy_flag = False
 
     def _verify_port(self, port):
         """Verify new port
