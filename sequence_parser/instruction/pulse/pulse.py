@@ -171,6 +171,20 @@ class HalfDRAG(Pulse):
     def _get_duration(self):
         self.duration = self.insts[0].duration
 
+class DRAG5th(Pulse):
+    def __init__(
+        self,
+        pulse,
+        beta
+    ):
+        super().__init__()
+        self.pulse_shape = DRAG5thShape()
+        self.params = {"beta":beta}
+        self.insts = {0 : pulse}
+
+    def _get_duration(self):
+        self.duration = self.insts[0].duration
+
 class Deriviative(Pulse):
     def __init__(
         self,
