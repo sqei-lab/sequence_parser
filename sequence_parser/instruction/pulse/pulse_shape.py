@@ -120,6 +120,38 @@ class HalfDRAGShape(PulseShape):
         waveform = tmp - 1j*self.beta*np.gradient(tmp)/np.gradient(time)
         return waveform
 
+
+class DRAG5thShape(PulseShape):
+    def __init__(self):
+        super().__init__()
+
+    def set_params(self, pulse):
+        self.pulseshape = copy.deepcopy(pulse.insts[0].pulse_shape)
+        self.beta = pulse.tmp_params["beta"]
+
+    def model_func(self, time):
+        lam = np.sqrt(2)
+        delta = 1/self.beta # -0.15 # 
+        tmp = self.pulseshape.model_func(time)
+
+        ex = tmp + ((lam**2-4)*tmp**3)/8/delta**2
+        ex -= ((13*lam**4-76*lam**2+112)*tmp**5)/128/delta**4
+
+        dex0 = np.gradient(tmp)/np.gradient(time)
+        ey = -dex0/delta + 33*(lam**2-2)*(tmp**2)*dex0
+        
+        del_t = ((lam**2-4)*tmp**2)/4/delta - ((lam**4-7*lam**2+12)*tmp**4)/16/delta**3
+        int_del_t = np.cumsum(del_t*np.gradient(time))
+        del_ave = int_del_t[-1]/(time[-1]-time[0])
+        theta = np.cumsum((del_t-del_ave)*np.gradient(time))
+
+        Ex = ex*np.cos(theta) - ey*np.sin(theta)
+        Ey = ey*np.cos(theta) + ex*np.sin(theta)
+        print(del_ave)
+        waveform = Ex + 1j*Ey
+        return waveform
+
+
 class FlatTopShape(PulseShape):
     def __init__(self):
         super().__init__()
