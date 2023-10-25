@@ -302,6 +302,7 @@ class Sequence:
                 m = max(np.max(np.abs(y1)), np.max(np.abs(y2)))
                 y1 = np.abs(y1)/m
                 y2 = np.abs(y2)/m
+            py = np.max([np.max(y1), np.max(y2), 0.05])*1.1
             plt.step(port.time, y1)
             plt.step(port.time, y2)
             plt.fill_between(port.time, y1, step="pre", alpha=0.4)
@@ -310,9 +311,10 @@ class Sequence:
                 position = self.trigger_position_list[trigger_index]
                 plt.axvline(position, color="red", linestyle="--")
                 if plot_time_range[0] <= position <= plot_time_range[1]:
-                    plt.text(x=position, y=-1, s=trigger_index, color="red", fontsize=12)
+                    plt.text(x=position, y=-py, s=trigger_index, color="red", fontsize=12)
             plt.text(x=plot_time_range[0], y=-0, s=port.name,fontsize=18)
-            plt.ylim(-1,1)
+            # my = np.min(np.min(y1), np.min(y2))
+            plt.ylim(-py, py)
             plt.xlim(plot_time_range[0], plot_time_range[1])
             plt.grid()
             plt.ylabel("Amplitude")
