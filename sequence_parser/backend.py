@@ -17,6 +17,7 @@ class QubitPort:
                 self.readout = IQPort(f"q{node}.r", node=node)
                 self.acquire = IQPort(f"q{node}.a", node=node)
                 self.free_port = IQPort(f"q{node}.fp", node=node)
+                self.control_ef = IQPort(f"q{node}.ef", node=node)
             elif self.port_type == 'CAS_IQ':
                 self.control = IQPort(f"q{node}.q", node=node)
                 self.readout = IQPort(f"q{node}.r", node=node)
@@ -40,6 +41,7 @@ class QubitPort:
         self.r = self.readout
         self.a = self.acquire
         self.fp = self.free_port
+        self.ef = self.control_ef
 
         self.lshift = {}
         self.rshift = {}
