@@ -53,7 +53,7 @@ class GaussianShape(PulseShape):
 
     def model_func(self, time):
         waveform = self.amplitude*np.exp(-4*np.log(2)*(time/self.fwhm)**2)
-        if self.zero_end:
+        if self.zero_end and abs(self.amplitude) > 0:
             edge = self.amplitude*np.exp(-4*np.log(2)*(0.5*self.duration/self.fwhm)**2)
             waveform = self.amplitude*(waveform - edge)/(self.amplitude - edge)
         return waveform
@@ -70,7 +70,7 @@ class GaussianShape2(PulseShape):
 
     def model_func(self, time):
         waveform = self.amplitude*np.exp(-4*np.log(2)*(time/self.fwhm)**2)
-        if self.zero_end:
+        if self.zero_end and abs(self.amplitude) > 0:
             edge = self.amplitude*np.exp(-4*np.log(2)*(0.5*self.duration/self.fwhm)**2)
             waveform = self.amplitude*(waveform - edge)/(self.amplitude - edge)
         return waveform
@@ -100,7 +100,7 @@ class HyperbolicSecantShape(PulseShape):
         
     def model_func(self, time):
         waveform = self.amplitude/np.cosh(2*np.log(2+3**0.5)/self.fwhm*time)
-        if self.zero_end:
+        if self.zero_end and abs(self.amplitude) > 0:
             edge = self.amplitude/np.cosh(2*np.log(2+3**0.5)/self.fwhm*0.5*self.duration)
             waveform = self.amplitude*(waveform - edge)/(self.amplitude - edge)
         if self.amplitude == 0:
@@ -119,7 +119,6 @@ class HalfDRAGShape(PulseShape):
         tmp = self.pulseshape.model_func(time)
         waveform = tmp - 1j*self.beta*np.gradient(tmp)/np.gradient(time)
         return waveform
-
 
 class DRAG5thShape(PulseShape):
     def __init__(self):
@@ -151,7 +150,24 @@ class DRAG5thShape(PulseShape):
         waveform = Ex + 1j*Ey
         return waveform
 
+class WAHWAH1Shape(PulseShape):
+    def __init__(self):
+        super().__init__()
 
+    def set_params(self, pulse):
+        self.pulseshape = copy.deepcopy(pulse.insts[0].pulse_shape)
+        self.beta = pulse.tmp_params["beta"]
+        self.fm = pulse.tmp_params["fm"]
+        self.am = pulse.tmp_params["am"]
+
+    def model_func(self, time):
+        tmp = self.pulseshape.model_func(time)
+        tg = time[-1] - time[0]
+        wahwah = 1 - self.am*np.cos(2*np.pi*self.fm*(time - tg/2))
+        tmp = tmp*wahwah
+        waveform = tmp - 1j*self.beta*np.gradient(tmp)/np.gradient(time)
+        return waveform
+    
 class FlatTopShape(PulseShape):
     def __init__(self):
         super().__init__()

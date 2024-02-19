@@ -185,6 +185,21 @@ class DRAG5th(Pulse):
     def _get_duration(self):
         self.duration = self.insts[0].duration
 
+class WAHWAH1(Pulse):
+    def __init__(
+        self,
+        pulse,
+        beta,
+        fm, am
+    ):
+        super().__init__()
+        self.pulse_shape = WAHWAH1Shape()
+        self.params = {"beta":beta, "fm": fm, "am": am}
+        self.insts = {0 : pulse}
+
+    def _get_duration(self):
+        self.duration = self.insts[0].duration
+
 class Deriviative(Pulse):
     def __init__(
         self,
